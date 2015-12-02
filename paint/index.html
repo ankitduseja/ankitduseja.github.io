@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Paint - By Ankit Duseja</title>
+<link href='http://fonts.googleapis.com/css?family=Lobster&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+<style>
+body {
+margin:0px;
+padding:0px;
+height:100%;
+width:100%;
+}
+</style>
+</head>
+<body>
+<div style="width:500px; margin-left:auto; margin-right:auto; text-align:center; font-family: 'Lobster', cursive;"><h1>Paint</h1>
+<br/>By Ankit Duseja<br/></div>
+<div style="float:right;">
+
+<form>
+<input type="radio" name="shape" value="square" onclick="updateShape('square')" checked="true"/>Square <input type="radio" name="shape" onclick="updateShape('circle')" value="circle"/> Circle
+</form>
+<textarea id="what" rows="30" cols="80" style="float:right;"></textarea></div>
+<canvas id="myCanvas" width="600" height="500" style="border:1px solid #d3d3d3;">
+Your browser does not support the HTML5 canvas tag.</canvas>
+<div id="xco"></div><br/>
+<script>
+function getRandomColor() {
+    var letters = '0123456789ABCDEF'.split('');
+    var color = '#';
+    for (var i = 0; i < 6; i++ ) {
+        color += letters[Math.round(Math.random() * 15)];
+    }
+    return color;
+}
+var c=document.getElementById("myCanvas");
+var ctx=c.getContext("2d");
+//ctx.beginPath();
+//ctx.arc(95,50,40,0,2*Math.PI);
+//ctx.stroke();
+
+var curElem=false,
+	curElemX=0,
+	curElemY=0,
+	newElemX=null,
+	newElemY=null,
+	elemCount=0,
+	lastClick=null,
+	lastClickTime=null,
+	shape="square";
+	
+	function updateShape(a) {
+	shape=a;
+	}
+	function calR( p1x,p1y,p2x,p2y )
+	{
+	  var xs = 0;
+	  var ys = 0;
+	 
+	  xs = p2x - p1x;
+	  xs = xs * xs;
+	 
+	  ys = p2y - p1y;
+	  ys = ys * ys;
+	 
+	  return Math.sqrt( xs + ys );
+	}
+
+
+var elem = document.getElementById('myCanvas'),
+    elemLeft = elem.offsetLeft,
+    elemTop = elem.offsetTop,
+    context = elem.getContext('2d'),
+    elements = [];
+
+
+// Add event listener for `mousemove` events.
+elem.addEventListener('mousemove', function(event) {
+    var x = event.pageX - elemLeft,
+        y = event.pageY - elemTop;
+		
+document.getElementById("xco").innerHTML="X: "+x+" ";
+document.getElementById("xco").innerHTML+="Y: "+y;
+		var b=false;
+		elements.forEach(function(element) {
+		if(element.shape=="square") {
+			if (y > element.top && y < element.top + element.height 
+				&& x > element.left && x < element.left + element.width && element.visible==true) {
+				//alert('clicked an element'+element);
+				b=true;
+			}
+		} else if(element.shape=="circle") {
+			if (y > (element.top-element.radius) && y < element.top-element.radius + element.height 
+				&& x > element.left-element.radius && x < element.left-element.radius + element.width && element.visible==true) {
+				//alert('clicked an element'+element);
+				b=true;
+			}
+		}
+		});
+		if(b) {
+		document.body.style.cursor = 'pointer';
+		} else {
+		document.body.style.cursor = 'default';
+		}
+		if(curElem) {
+		var ind=curElem.id;
+		//elements[ind].top=y-curElemY;
+		//elements[ind].left=x-curElemX;
+		redraw();
+		if(curElem.shape=="square") {
+		ctx.fillStyle = "#ccc";
+		ctx.fillRect(x-curElemX, y-curElemY, curElem.width, curElem.height);
+		} else if (curElem.shape="circle") {
+		
+		context.fillStyle = "#ccc";
+			context.beginPath();
+			context.arc(x-curElemX, y-curElemY, curElem.radius, 0,2*Math.PI);
+			context.stroke();
+		}
+		//curElem=false;
+		//curElemX=0;
+		//curElemY=0;
+		}
+		if(newElemX && newElemY){
+		//Show new elem
+		redraw();
+		if(shape=="square") {
+		ctx.fillStyle = "#ccc";
+		ctx.fillRect(newElemX, newElemY, x-newElemX, y-newElemY);
+		} else if (shape="circle") {
+			var r=calR(newElemX,newElemY,x,y);
+			context.beginPath();
+			context.arc(x-curElemX, y-curElemY, r, 0,2*Math.PI);
+			context.stroke();
+		}
+		}
+}, false);
+
+	
+// Add event listener for `click` events.
+elem.addEventListener('click', function(event) {
+    var x = event.pageX - elemLeft,
+        y = event.pageY - elemTop;
+	var elemP=false;
+	
+    // Collision detection between clicked offset and element.
+    elements.forEach(function(element) {
+	
+		if(element.shape=="square") {
+        if (y > element.top && y < element.top + element.height 
+            && x > element.left && x < element.left + element.width && element.visible==true) {
+            //alert('clicked an element'+element);
+			elemP=element;
+        }
+		} else if(element.shape=="circle") {
+		    if (y > element.top-element.radius && y < element.top-element.radius + element.height 
+            && x > element.left-element.radius && x < element.left-element.radius + element.width && element.visible==true) {
+            //alert('clicked an element'+element);
+			elemP=element;
+        }
+		}
+    });
+		
+		if(elemP) {
+		var curTime = new Date();
+		var tdiff=curTime-lastClickTime;
+		lastClickTime=curTime;
+		//alert (tdiff);
+			if(lastClick==elemP.id && tdiff<400) {
+			elemP.visible=false;
+			lastClick=null;
+			} else {
+			lastClick=elemP.id;
+			}
+		} else  {
+		lastClick=null;
+		if(newElemX && newElemY) {
+			//Check shape
+			if(shape=="square") {
+			// Add element.
+			var el=elements.push({
+				color: getRandomColor(),
+				width: 150,
+				height: 100,
+				top: y,
+				left: x,
+				id:elemCount++,
+				visible:true,
+				shape:"square"
+			});
+			} else if(shape=="circle") {
+			var el=elements.push({
+				color: getRandomColor(),
+				width: 100,
+				height: 100,
+				radius:50,
+				top: y,
+				left: x,
+				id:elemCount++,
+				visible:true,
+				shape:"circle"
+				});
+				}
+			}
+		}
+		redraw();
+
+}, false);
+
+
+elem.addEventListener('mousedown', function(event) {
+	curElem=false;
+	curElemX=0;
+	curElemY=0;
+    var x = event.pageX - elemLeft,
+        y = event.pageY - elemTop;
+		var z=document.getElementById("what");
+		z.innerHTML+=" Down:"+x+" "+y;
+    // Collision detection between clicked offset and element.
+    elements.forEach(function(element) {
+		if(element.shape=="square") {
+			if (y > element.top && y < element.top + element.height 
+				&& x > element.left && x < element.left + element.width && element.visible==true) {
+				//set elementid
+				curElem=element;
+				curElemX=x-element.left;
+				curElemY=y-element.top;
+			}
+		} else if(element.shape=="circle") {
+			if (y > (element.top-element.radius) && y < element.top-element.radius + element.height 
+				&& x > element.left-element.radius && x < element.left-element.radius + element.width && element.visible==true) {
+				
+				curElem=element;
+				curElemX=x-element.left;
+				curElemY=y-element.top;
+			}
+		}
+    });	
+			if(curElem==false) {
+			//draw new elem
+			newElemX=x;
+			newElemY=y;
+			} else {
+			//elements.push(curElem);
+			//redraw();
+			//newElemX=x;
+			//newElemY=y;
+			}
+}, false);
+
+elem.addEventListener('mouseup', function(event) {
+
+    var x = event.pageX - elemLeft,
+        y = event.pageY - elemTop;
+		var z=document.getElementById("what");
+		z.innerHTML+=" Up :"+x+" "+y;
+		if(curElem) {
+		//curElem.top=y;
+		//curElem.left=x;
+		var ind=curElem.id;
+		elements[ind].top=y-curElemY;
+		elements[ind].left=x-curElemX;
+		redraw();
+		curElem=false;
+		curElemX=0;
+		curElemY=0;
+		} else {
+		//Check shape
+			if(shape=="square") {
+			// Add element.
+			var el=elements.push({
+				color: getRandomColor(),
+				width: x-newElemX,
+				height: y-newElemY,
+				top: newElemY,
+				left: newElemX,
+				id:elemCount++,
+				visible:true,
+				shape:"square"
+			});
+			} else if(shape=="circle") {
+			var r=calR(newElemX,newElemY,x,y);
+			var el=elements.push({
+				color: getRandomColor(),
+				width: 2*r,
+				height: 2*r,
+				radius:r,
+				top: y,
+				left: x,
+				id:elemCount++,
+				visible:true,
+				shape:"circle"
+			});
+			}
+			
+			newElemX=newElemY=null;
+		}
+
+}, false);
+
+
+
+function redraw() {
+// Render elements.
+context.clearRect(0, 0, c.width, c.height);
+elements.forEach(function(element) {
+	if(element.visible==true) {
+		if(element.shape=="square") {
+			context.fillStyle = element.color;
+			context.fillRect(element.left, element.top, element.width, element.height);
+		} else {
+			context.fillStyle = element.color;
+			context.beginPath();
+			context.arc(element.left, element.top, element.radius, 0,2*Math.PI);
+			context.fill();
+		}
+	}
+});
+}
+
+redraw();
+
+</script> 
+</body>
+</html>
